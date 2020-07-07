@@ -8,6 +8,8 @@ HALF_BLOCK = BLOCK // 2
 FPS = 30
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+TOP = BLOCK
+BOTTOM = HEIGHT - BLOCK
 
 
 class Paddle(pygame.sprite.Sprite):
@@ -18,6 +20,12 @@ class Paddle(pygame.sprite.Sprite):
         self.image = image.convert()
         self.rect = self.image.get_rect()
         self.rect.center = position
+
+    def update(self):
+        if self.rect.y < TOP:
+            self.rect.y = TOP
+        elif self.rect.y > (BOTTOM - self.rect.height):
+            self.rect.y = BOTTOM - self.rect.height
 
 
 class Cpu(Paddle):
@@ -35,6 +43,17 @@ class Player(Paddle):
         _, y = pygame.mouse.get_pos()
         bottom = HEIGHT - self.rect.height
         self.rect.y = bottom if y > bottom else y
+        super().update()
+
+
+class Wall(pygame.sprite.Sprite):
+    def __init__(self, position, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        image = pygame.Surface((WIDTH, BLOCK))
+        image.fill(WHITE)
+        self.image = image.convert()
+        self.rect = self.image.get_rect()
+        self.rect.topleft = position
 
 
 class Game:
@@ -50,6 +69,8 @@ class Game:
         self.sprites.empty()
         self.player = Player((self.sprites,))
         self.cpu = Cpu((self.sprites,))
+        self.wall_top = Wall((0, 0), (self.sprites,))
+        self.wall_bottom = Wall((0, BOTTOM), (self.sprites,))
         self.running = True
 
     def update(self):
