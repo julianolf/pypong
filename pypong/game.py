@@ -1,3 +1,5 @@
+from random import randint
+
 import pygame
 
 TITLE = 'PyPONG'
@@ -60,11 +62,27 @@ class Ball(pygame.sprite.Sprite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         image = pygame.Surface((BLOCK, BLOCK))
+        image.fill(BLACK)
+        image.set_colorkey(BLACK)
         pygame.draw.circle(image, WHITE, (HALF_BLOCK, HALF_BLOCK), HALF_BLOCK)
         self.image = image.convert()
         self.rect = self.image.get_rect()
         self.rect.center = (WIDTH / 2, HEIGHT / 2)
         self.radius = HALF_BLOCK
+        self.velocity = pygame.Vector2(randint(4, 8), randint(-8, 8))
+
+    def update(self):
+        if self.rect.x <= 0 or self.rect.x >= (WIDTH - self.rect.width):
+            self.velocity.x *= -1
+        if self.rect.y <= TOP or self.rect.y >= (BOTTOM - self.rect.height):
+            self.velocity.y *= -1
+
+        self.rect.x += self.velocity.x
+        self.rect.y += self.velocity.y
+
+    def bounce(self):
+        self.velocity.x *= -1
+        self.velocity.y = randint(-8, 8)
 
 
 class Game:
@@ -75,11 +93,13 @@ class Game:
         self.screen = pygame.display.set_mode(WIN_SIZE)
         self.clock = pygame.time.Clock()
         self.sprites = pygame.sprite.Group()
+        self.paddles = pygame.sprite.Group()
 
     def reset(self):
         self.sprites.empty()
-        self.player = Player((self.sprites,))
-        self.cpu = Cpu((self.sprites,))
+        self.paddles.empty()
+        self.player = Player((self.sprites, self.paddles))
+        self.cpu = Cpu((self.sprites, self.paddles))
         self.wall_top = Wall((0, 0), (self.sprites,))
         self.wall_bottom = Wall((0, BOTTOM), (self.sprites,))
         self.ball = Ball((self.sprites,))
@@ -87,6 +107,14 @@ class Game:
 
     def update(self):
         self.sprites.update()
+
+        if pygame.sprite.spritecollide(
+            self.ball,
+            self.paddles,
+            False,
+            pygame.sprite.collide_rect_ratio(0.8),
+        ):
+            self.ball.bounce()
 
     def draw(self):
         self.screen.fill(BLACK)
