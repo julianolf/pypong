@@ -53,7 +53,7 @@ class Player(Paddle):
 
 
 class Ball(pygame.sprite.Sprite):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, game, *args, **kwargs):
         super().__init__(*args, **kwargs)
         image = pygame.Surface((BLOCK, BLOCK))
         image.fill(BLACK)
@@ -64,20 +64,36 @@ class Ball(pygame.sprite.Sprite):
         self.rect.center = (MID_WIDTH, HEIGHT / 2)
         self.radius = HALF_BLOCK
         self.velocity = pygame.Vector2(randint(6, 9), randint(-8, 8))
+        self.game = game
 
     def update(self):
-        if self.rect.x <= 0 or self.rect.x >= (WIDTH - self.rect.width):
-            self.velocity.x *= -1
         if self.rect.y <= TOP or self.rect.y >= (BOTTOM - self.rect.height):
             self.velocity.y *= -1
-
         self.rect.x += self.velocity.x
         self.rect.y += self.velocity.y
+        self.hit()
+        self.out()
 
     def bounce(self):
         self.velocity.x += randint(-2, 2)
         self.velocity.x *= -1
         self.velocity.y = randint(-8, 8)
+
+    def hit(self):
+        if pygame.sprite.spritecollide(
+            self,
+            self.game.paddles,
+            False,
+            pygame.sprite.collide_rect_ratio(0.85),
+        ):
+            self.bounce()
+
+    def out(self):
+        player_scored = self.rect.x >= (WIDTH - self.rect.width)
+        cpu_scored = self.rect.x <= 0
+        if player_scored or cpu_scored:
+            self.kill()
+            self.game.score(player=int(player_scored), cpu=int(cpu_scored))
 
 
 class Net(pygame.sprite.Sprite):
@@ -128,19 +144,19 @@ class Game:
         self.score_right = Score(0, (WIDTH * 0.75, 50), (self.sprites))
         self.player = Player((self.sprites, self.paddles))
         self.cpu = Cpu((self.sprites, self.paddles))
-        self.ball = Ball((self.sprites,))
+        self.serve()
         self.running = True
+
+    def score(self, player=0, cpu=0):
+        self.score_left.value += player
+        self.score_right.value += cpu
+        self.serve()
+
+    def serve(self):
+        self.ball = Ball(self, (self.sprites,))
 
     def update(self):
         self.sprites.update()
-
-        if pygame.sprite.spritecollide(
-            self.ball,
-            self.paddles,
-            False,
-            pygame.sprite.collide_rect_ratio(0.85),
-        ):
-            self.ball.bounce()
 
     def draw(self):
         self.screen.fill(BLACK)
