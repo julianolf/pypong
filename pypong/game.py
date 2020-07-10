@@ -1,3 +1,4 @@
+from os import path
 from random import randint
 
 import pygame
@@ -13,6 +14,8 @@ WHITE = (255, 255, 255)
 TOP = 0
 BOTTOM = HEIGHT
 MID_WIDTH = WIDTH / 2
+ASSETS_PATH = path.join(path.dirname(__file__), 'assets')
+FONT = path.join(ASSETS_PATH, 'font', 'Teko-Regular.ttf')
 
 
 class Paddle(pygame.sprite.Sprite):
@@ -94,6 +97,19 @@ class Net(pygame.sprite.Sprite):
         self.rect.midtop = (MID_WIDTH, 0)
 
 
+class Score(pygame.sprite.Sprite):
+    def __init__(self, value, position, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.font = pygame.font.Font(FONT, 80)
+        self.value = value
+        self.position = position
+
+    def update(self):
+        self.image = self.font.render(str(self.value), True, WHITE)
+        self.rect = self.image.get_rect()
+        self.rect.midtop = self.position
+
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -108,6 +124,8 @@ class Game:
         self.sprites.empty()
         self.paddles.empty()
         self.net = Net((self.sprites,))
+        self.score_left = Score(0, (WIDTH * 0.25, 50), (self.sprites))
+        self.score_right = Score(0, (WIDTH * 0.75, 50), (self.sprites))
         self.player = Player((self.sprites, self.paddles))
         self.cpu = Cpu((self.sprites, self.paddles))
         self.ball = Ball((self.sprites,))
