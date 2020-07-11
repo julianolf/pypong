@@ -36,9 +36,19 @@ class Paddle(pygame.sprite.Sprite):
 
 
 class Cpu(Paddle):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, game, *args, **kwargs):
         position = (WIDTH - BLOCK * 2, HEIGHT / 2)
         super().__init__(position, *args, **kwargs)
+        self.game = game
+
+    def update(self):
+        if self.game.ball.velocity.x > 0:
+            diff = self.rect.centery - self.game.ball.rect.centery
+            if diff != 0:
+                speed = self.game.ball.velocity.x % abs(diff)
+                speed = -speed if diff > 0 else speed
+                self.rect.centery += speed
+        super().update()
 
 
 class Player(Paddle):
@@ -168,7 +178,7 @@ class Game:
         self.score_left = Score(0, (WIDTH * 0.25, 50), (self.sprites))
         self.score_right = Score(0, (WIDTH * 0.75, 50), (self.sprites))
         self.player = Player((self.sprites, self.paddles))
-        self.cpu = Cpu((self.sprites, self.paddles))
+        self.cpu = Cpu(self, (self.sprites, self.paddles))
         self.serve()
         self.splash_screen = None
 
