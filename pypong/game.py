@@ -14,6 +14,7 @@ WHITE = (255, 255, 255)
 TOP = 0
 BOTTOM = HEIGHT
 MID_WIDTH = WIDTH / 2
+MID_HEIGHT = HEIGHT / 2
 ASSETS_PATH = path.join(path.dirname(__file__), 'assets')
 FONT = path.join(ASSETS_PATH, 'font', 'Teko-Regular.ttf')
 
@@ -126,6 +127,30 @@ class Score(pygame.sprite.Sprite):
         self.rect.midtop = self.position
 
 
+class GameOver(pygame.sprite.Sprite):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        image = pygame.Surface(WIN_SIZE)
+        image.fill(BLACK)
+        image.set_colorkey(BLACK)
+
+        font_big = pygame.font.Font(FONT, 80)
+        title = font_big.render('GAME OVER', True, WHITE)
+        title_rect = title.get_rect()
+        title_rect.midbottom = (MID_WIDTH, MID_HEIGHT)
+        image.blit(title, title_rect)
+
+        font_small = pygame.font.Font(FONT, 30)
+        message = font_small.render('Press any key to play again', True, WHITE)
+        message_rect = message.get_rect()
+        message_rect.midtop = (MID_WIDTH, MID_HEIGHT)
+        image.blit(message, message_rect)
+
+        self.image = image.convert()
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (0, 0)
+
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -145,12 +170,19 @@ class Game:
         self.player = Player((self.sprites, self.paddles))
         self.cpu = Cpu((self.sprites, self.paddles))
         self.serve()
+        self.game_over = None
         self.running = True
+
+    def over(self):
+        if self.score_left.value == 11 or self.score_right.value == 11:
+            self.sprites.empty()
+            self.game_over = GameOver((self.sprites,))
+            return True
 
     def score(self, player=0, cpu=0):
         self.score_left.value += player
         self.score_right.value += cpu
-        self.serve()
+        self.over() or self.serve()
 
     def serve(self):
         self.ball = Ball(self, (self.sprites,))
@@ -173,6 +205,9 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
                     return
+                if event.type == pygame.KEYDOWN:
+                    if self.game_over:
+                        self.reset()
 
     def run(self):
         self.reset()
