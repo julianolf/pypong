@@ -127,24 +127,24 @@ class Score(pygame.sprite.Sprite):
         self.rect.midtop = self.position
 
 
-class GameOver(pygame.sprite.Sprite):
-    def __init__(self, *args, **kwargs):
+class SplashScreen(pygame.sprite.Sprite):
+    def __init__(self, text=TITLE, *args, **kwargs):
         super().__init__(*args, **kwargs)
         image = pygame.Surface(WIN_SIZE)
         image.fill(BLACK)
         image.set_colorkey(BLACK)
 
         font_big = pygame.font.Font(FONT, 80)
-        title = font_big.render('GAME OVER', True, WHITE)
+        title = font_big.render(text, True, WHITE)
         title_rect = title.get_rect()
         title_rect.midbottom = (MID_WIDTH, MID_HEIGHT)
         image.blit(title, title_rect)
 
         font_small = pygame.font.Font(FONT, 30)
-        message = font_small.render('Press any key to play again', True, WHITE)
-        message_rect = message.get_rect()
-        message_rect.midtop = (MID_WIDTH, MID_HEIGHT)
-        image.blit(message, message_rect)
+        hint = font_small.render('Press any key to play', True, WHITE)
+        hint_rect = hint.get_rect()
+        hint_rect.midtop = (MID_WIDTH, MID_HEIGHT)
+        image.blit(hint, hint_rect)
 
         self.image = image.convert()
         self.rect = self.image.get_rect()
@@ -170,13 +170,17 @@ class Game:
         self.player = Player((self.sprites, self.paddles))
         self.cpu = Cpu((self.sprites, self.paddles))
         self.serve()
-        self.game_over = None
+        self.splash_screen = None
+
+    def start(self):
+        self.sprites.empty()
+        self.splash_screen = SplashScreen(TITLE, (self.sprites,))
         self.running = True
 
     def over(self):
         if self.score_left.value == 11 or self.score_right.value == 11:
             self.sprites.empty()
-            self.game_over = GameOver((self.sprites,))
+            self.splash_screen = SplashScreen('GAME OVER', (self.sprites,))
             return True
 
     def score(self, player=0, cpu=0):
@@ -195,22 +199,25 @@ class Game:
         self.sprites.draw(self.screen)
         pygame.display.flip()
 
+    def events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+                return
+            if event.type == pygame.KEYDOWN:
+                if self.splash_screen:
+                    self.reset()
+                    return
+
     def loop(self):
         while self.running:
             self.clock.tick(FPS)
             self.update()
             self.draw()
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                    return
-                if event.type == pygame.KEYDOWN:
-                    if self.game_over:
-                        self.reset()
+            self.events()
 
     def run(self):
-        self.reset()
+        self.start()
         self.loop()
         pygame.quit()
 
