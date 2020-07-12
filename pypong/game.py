@@ -94,17 +94,33 @@ class Ball(pygame.sprite.Sprite):
         self.velocity.y = randint(-6, 6)
 
     def hit(self):
-        if pygame.sprite.spritecollide(
+        hits = pygame.sprite.spritecollide(
             self,
             self.game.paddles,
             False,
             pygame.sprite.collide_rect_ratio(0.85),
-        ):
+        )
+        if hits:
             now = pygame.time.get_ticks()
             elapsed_time = now - self.last_hit
             if elapsed_time > 500:
                 self.last_hit = now
                 self.bounce()
+            paddle = hits.pop()
+            if isinstance(paddle, Player):
+                if (
+                    self.rect.left < paddle.rect.right
+                    and self.rect.top >= paddle.rect.top
+                    and self.rect.bottom <= paddle.rect.bottom
+                ):
+                    self.rect.left = paddle.rect.right
+            else:
+                if (
+                    self.rect.right > paddle.rect.left
+                    and self.rect.top >= paddle.rect.top
+                    and self.rect.bottom <= paddle.rect.bottom
+                ):
+                    self.rect.right = paddle.rect.left
 
     def out(self):
         player_scored = self.rect.x >= (WIDTH - self.rect.width)
