@@ -74,8 +74,9 @@ class Ball(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (MID_WIDTH, HEIGHT / 2)
         self.radius = HALF_BLOCK
-        self.velocity = pygame.Vector2(randint(6, 9), randint(-8, 8))
+        self.velocity = pygame.Vector2(randint(6, 9), randint(-6, 6))
         self.game = game
+        self.last_hit = 0
 
     def update(self):
         if self.rect.y <= TOP or self.rect.y >= (BOTTOM - self.rect.height):
@@ -86,9 +87,11 @@ class Ball(pygame.sprite.Sprite):
         self.out()
 
     def bounce(self):
-        self.velocity.x += randint(-2, 2)
-        self.velocity.x *= -1
-        self.velocity.y = randint(-8, 8)
+        velocityx = (abs(self.velocity.x) + randint(1, 2)) % BLOCK
+        velocityx = randint(6, 9) if velocityx == 0 else velocityx
+        velocityx = -velocityx if self.velocity.x > 0 else velocityx
+        self.velocity.x = velocityx
+        self.velocity.y = randint(-6, 6)
 
     def hit(self):
         if pygame.sprite.spritecollide(
@@ -97,7 +100,11 @@ class Ball(pygame.sprite.Sprite):
             False,
             pygame.sprite.collide_rect_ratio(0.85),
         ):
-            self.bounce()
+            now = pygame.time.get_ticks()
+            elapsed_time = now - self.last_hit
+            if elapsed_time > 500:
+                self.last_hit = now
+                self.bounce()
 
     def out(self):
         player_scored = self.rect.x >= (WIDTH - self.rect.width)
