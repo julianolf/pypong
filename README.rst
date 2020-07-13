@@ -3,6 +3,10 @@ PyPONG
 
 Yet another Pong game written in Python.
 
+.. image:: screenshot.png
+    :width: 640px
+    :alt: game play screenshot
+
 Requirements
 ------------
 
