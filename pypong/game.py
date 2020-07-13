@@ -79,7 +79,11 @@ class Ball(pygame.sprite.Sprite):
         self.last_hit = 0
 
     def update(self):
-        if self.rect.y <= TOP or self.rect.y >= (BOTTOM - self.rect.height):
+        if self.rect.top <= TOP:
+            self.rect.top = TOP
+            self.velocity.y *= -1
+        elif self.rect.bottom >= BOTTOM:
+            self.rect.bottom = BOTTOM
             self.velocity.y *= -1
         self.rect.x += self.velocity.x
         self.rect.y += self.velocity.y
