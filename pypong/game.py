@@ -22,7 +22,7 @@ FONT = path.join(ASSETS_PATH, 'font', 'Teko-Regular.ttf')
 class Paddle(pygame.sprite.Sprite):
     def __init__(self, position, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        image = pygame.Surface((HALF_BLOCK, BLOCK * 4))
+        image = pygame.Surface((HALF_BLOCK, BLOCK * 3))
         image.fill(WHITE)
         self.image = image.convert()
         self.rect = self.image.get_rect()
@@ -74,7 +74,7 @@ class Ball(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (MID_WIDTH, HEIGHT / 2)
         self.radius = HALF_BLOCK
-        self.velocity = pygame.Vector2(randint(6, 9), randint(-6, 6))
+        self.velocity = pygame.Vector2(randint(23, 28), randint(-6, 6))
         self.game = game
         self.last_hit = 0
 
@@ -87,10 +87,8 @@ class Ball(pygame.sprite.Sprite):
         self.out()
 
     def bounce(self):
-        velocityx = (abs(self.velocity.x) + randint(1, 2)) % BLOCK
-        velocityx = randint(6, 9) if velocityx == 0 else velocityx
-        velocityx = -velocityx if self.velocity.x > 0 else velocityx
-        self.velocity.x = velocityx
+        velocityx = randint(23, 28)
+        self.velocity.x = -velocityx if self.velocity.x > 0 else velocityx
         self.velocity.y = randint(-6, 6)
 
     def hit(self):
