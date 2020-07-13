@@ -3,7 +3,7 @@ PyPONG
 
 Yet another Pong game written in Python.
 
-.. image:: screenshot.png
+.. image:: https://raw.githubusercontent.com/julianolf/pypong/master/screenshot.png
     :width: 640px
     :alt: game play screenshot
 
