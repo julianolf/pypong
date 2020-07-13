@@ -17,6 +17,7 @@ MID_WIDTH = WIDTH / 2
 MID_HEIGHT = HEIGHT / 2
 ASSETS_PATH = path.join(path.dirname(__file__), 'assets')
 FONT = path.join(ASSETS_PATH, 'font', 'Teko-Regular.ttf')
+SFX = path.join(ASSETS_PATH, 'sfx')
 
 
 class Paddle(pygame.sprite.Sprite):
@@ -82,9 +83,11 @@ class Ball(pygame.sprite.Sprite):
         if self.rect.top <= TOP:
             self.rect.top = TOP
             self.velocity.y *= -1
+            self.game.sfx['wall'].play()
         elif self.rect.bottom >= BOTTOM:
             self.rect.bottom = BOTTOM
             self.velocity.y *= -1
+            self.game.sfx['wall'].play()
         self.rect.x += self.velocity.x
         self.rect.y += self.velocity.y
         self.hit()
@@ -94,6 +97,7 @@ class Ball(pygame.sprite.Sprite):
         velocityx = randint(23, 28)
         self.velocity.x = -velocityx if self.velocity.x > 0 else velocityx
         self.velocity.y = randint(-6, 6)
+        self.game.sfx['bounce'].play()
 
     def hit(self):
         hits = pygame.sprite.spritecollide(
@@ -130,6 +134,7 @@ class Ball(pygame.sprite.Sprite):
         if player_scored or cpu_scored:
             self.kill()
             self.game.score(player=int(player_scored), cpu=int(cpu_scored))
+            self.game.sfx['missed'].play()
 
 
 class Net(pygame.sprite.Sprite):
@@ -189,12 +194,17 @@ class SplashScreen(pygame.sprite.Sprite):
 class Game:
     def __init__(self):
         pygame.init()
+        pygame.mixer.init()
         pygame.display.set_caption(TITLE)
         pygame.mouse.set_visible(False)
         self.screen = pygame.display.set_mode(WIN_SIZE)
         self.clock = pygame.time.Clock()
         self.sprites = pygame.sprite.Group()
         self.paddles = pygame.sprite.Group()
+        self.sfx = {
+            sound: pygame.mixer.Sound(path.join(SFX, f'{sound}.wav'))
+            for sound in ('bounce', 'missed', 'wall')
+        }
 
     def reset(self):
         self.sprites.empty()
